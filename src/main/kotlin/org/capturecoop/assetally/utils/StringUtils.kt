@@ -1,4 +1,4 @@
-package org.capturecoop.assetally
+package org.capturecoop.assetally.utils
 
 object StringUtils {
     private val lettersLowercase = ('a'..'z').toList()
@@ -10,7 +10,5 @@ object StringUtils {
         addAll(numbers)
     }
 
-    fun randomString(length: Int = 40): String {
-        return (1..length).map { all.random() }.joinToString("")
-    }
+    fun randomString(length: Int = 40) = (1..length).map { all.random() }.joinToString("")
 }

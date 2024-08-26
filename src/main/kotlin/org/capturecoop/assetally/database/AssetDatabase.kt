@@ -1,33 +1,9 @@
-package org.capturecoop.assetally
+package org.capturecoop.assetally.database
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import org.capturecoop.assetally.config.ConfigManager
+import org.capturecoop.assetally.utils.JsonUtils
 import java.io.File
-
-@Serializable
-data class DatabaseItem (
-    val project: String,
-    val type: String,
-    val version: Version,
-    val file: String
-)
-
-@Serializable
-data class Version (
-    val major: Int,
-    val minor: Int,
-    val patch: Int
-) {
-
-    override fun toString() = "$major.$minor.$patch"
-
-    companion object {
-        fun fromString(version: String): Version {
-            val (major, minor, patch) = version.split(".").map { it.toInt() }
-            return Version(major, minor, patch)
-        }
-    }
-}
 
 object AssetDatabase {
     private val data = HashMap<String, DatabaseItem>()
@@ -56,6 +32,14 @@ object AssetDatabase {
         data[name] = item
     }
 
+    fun getLatest(project: String, type: String): DatabaseItem? {
+        return get(project, type).maxByOrNull { it.version }
+    }
+
+    fun getLatestBytes(project: String, type: String): ByteArray? {
+        return File(ConfigManager.assetsFolder, getLatest(project, type)!!.file).readBytes()
+    }
+
     fun get(project: String): List<DatabaseItem> {
         return data.values.filter { it.project == project }
     }
@@ -65,7 +49,10 @@ object AssetDatabase {
     }
 
     fun get(project: String, type: String, version: String): DatabaseItem? {
-        return data.values.firstOrNull { it.project == project && it.type == type && it.version == Version.fromString(version) }
+        return data.values.firstOrNull { it.project == project && it.type == type && it.version == Version.fromString(
+            version
+        )
+        }
     }
 
     fun getBytes(project: String, type: String, version: String): ByteArray? {

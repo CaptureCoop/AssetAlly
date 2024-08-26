@@ -1,14 +1,8 @@
-package org.capturecoop.assetally
+package org.capturecoop.assetally.config
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import org.capturecoop.assetally.utils.JsonUtils
 import java.io.File
-
-@Serializable
-data class Config(
-    val password: String = StringUtils.randomString(length = 50)
-)
 
 object ConfigManager {
     val rootFolder = File(".AssetAlly").apply { mkdirs() }

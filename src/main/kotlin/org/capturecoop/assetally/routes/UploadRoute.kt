@@ -1,32 +1,30 @@
 package org.capturecoop.assetally.routes
 
+import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
-import org.capturecoop.assetally.AssetDatabase
-import org.capturecoop.assetally.ConfigManager
-import org.capturecoop.assetally.badRequest
-import org.capturecoop.assetally.ok
+import org.capturecoop.assetally.database.AssetDatabase
+import org.capturecoop.assetally.config.ConfigManager
+import org.capturecoop.assetally.utils.read
 import java.io.File
 
 fun Routing.uploadRoute() {
     post("/upload") {
-        val multiParts = call.receiveMultipart().readAllParts()
+        if(!ConfigManager.authenticate(call.request.authorization() ?: ""))
+            return@post call.response.status(HttpStatusCode.Unauthorized)
 
-        val (project, type, version) = multiParts.filterIsInstance<PartData.FormItem>()
-            .associate { Pair(it.name, it.value) }
-            .let { keys -> listOf(keys["project"]!!, keys["type"]!!, keys["version"]!!) }
+        val multiPart = call.receiveMultipart().read()
+        val file = multiPart.getFileItem("file")!!
 
-        val file = multiParts.filterIsInstance<PartData.FileItem>().first { it.name == "file" }
         AssetDatabase.addItem(
-            project = project,
-            type = type,
-            version = version,
+            project = multiPart.getFormItem("project")!!.value,
+            type = multiPart.getFormItem("type")!!.value,
+            version = multiPart.getFormItem("version")!!.value,
             file = file.streamProvider().readAllBytes(),
             extension = File(file.originalFileName!!).extension
         )
-        call.ok()
+        call.response.status(HttpStatusCode.Created)
     }
 }

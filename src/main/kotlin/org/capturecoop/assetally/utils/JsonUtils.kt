@@ -1,4 +1,4 @@
-package org.capturecoop.assetally
+package org.capturecoop.assetally.utils
 
 import kotlinx.serialization.json.Json
 
